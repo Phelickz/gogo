@@ -1,0 +1,37 @@
+
+CREATE OR REPLACE FUNCTION get_spot_domains
+RETURN SYS_REFCURSOR IS
+  cur SYS_REFCURSOR;
+BEGIN
+  OPEN cur FOR
+    SELECT spot_name,
+           SUBSTR(website, INSTR(website, '//') + 2,
+                  INSTR(SUBSTR(website, INSTR(website, '//') + 2), '/') - 1) AS domain,
+           COUNT(*) AS domain_count
+    FROM spots
+    GROUP BY SUBSTR(website, INSTR(website, '//') + 2,
+                     INSTR(SUBSTR(website, INSTR(website, '//') + 2), '/') - 1)
+    HAVING COUNT(*) > 1;
+  RETURN cur;
+END;
+
+
+/*
+
+This function does the following:
+
+Returns spots that have a domain with a count greater than 1.
+Changes the website field so it only contains the domain.
+Counts how many spots have the same domain.
+Returns 3 columns: spot name, domain, and count number for the domain.
+You can execute the function and fetch the result set like this:
+
+*/
+
+VARIABLE cur REFCURSOR;
+BEGIN
+  :cur := get_spot_domains();
+END;
+/
+
+PRINT cur;
